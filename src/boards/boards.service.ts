@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { v1 as uuid } from 'uuid';
 import { Board, BoardStatus } from './boards.model';
 import { CreateBoardDto } from './dto/request/create-board.dto';
 
@@ -13,7 +12,7 @@ export class BoardsService {
 
   createBoard(dto: CreateBoardDto) {
     const board = {
-      id: uuid(),
+      id: this.boardList.length.toString(),
       title: dto.title,
       description: dto.description,
       status: BoardStatus.PUBLIC,
@@ -24,5 +23,19 @@ export class BoardsService {
 
   getBoardById(id: string) {
     return this.boardList.find((a) => a.id === id);
+  }
+
+  deleteById(id: string) {
+    console.log('deleteById >>> prev: ', this.boardList);
+    this.boardList = this.boardList.filter((b) => b.id !== id);
+    console.log('deleteById >>> now: ', this.boardList);
+  }
+
+  updateBoardStatus(id: string, boardStatus: BoardStatus) {
+    const board = this.getBoardById(id);
+    board.status = boardStatus;
+
+    const prev = this.boardList.find((b) => b.id === id);
+    this.boardList.splice(Number(id), 1, { ...prev, status: boardStatus });
   }
 }

@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { Board } from './boards.model';
 import { BoardsService } from './boards.service';
+import { CreateBoardDto } from './dto/request/create-board.dto';
 
 @Controller('boards')
 export class BoardsController {
@@ -13,9 +14,15 @@ export class BoardsController {
 
   @Post()
   createBoard(
-    @Body('title') title: string,
-    @Body('description') description: string,
+    @Body() dto: CreateBoardDto,
+    // @Body('title') title: string,
+    // @Body('description') description: string,
   ) {
-    this.boardsService.createBoard(title, description);
+    this.boardsService.createBoard(dto);
+  }
+
+  @Get('/:id')
+  getBoardById(@Param('id') id: string) {
+    return this.boardsService.getBoardById(id);
   }
 }

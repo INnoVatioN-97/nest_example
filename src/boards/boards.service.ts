@@ -1,43 +1,44 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Board, BoardStatus } from './boards.model';
+import { BoardRepository } from './board.repository';
+import { BoardStatus } from './boards.model';
 import { CreateBoardDto } from './dto/request/create-board.dto';
 
 @Injectable()
 export class BoardsService {
-  private boardList: Board[] = [];
+  constructor(readonly boardRepository: BoardRepository) {}
 
-  getAllBoards(): Board[] {
-    return this.boardList;
+  async getAllBoards() {
+    return await this.boardRepository.find();
   }
 
-  createBoard(dto: CreateBoardDto) {
+  async createBoard(dto: CreateBoardDto) {
     const board = {
-      id: this.boardList.length.toString(),
       title: dto.title,
       description: dto.description,
       status: BoardStatus.PUBLIC,
     };
 
-    this.boardList.push(board);
+    await this.boardRepository.save(board);
   }
 
-  getBoardById(id: string) {
-    const found = this.boardList.find((a) => a.id === id);
+  async getBoardById(id: number) {
+    const found = await this.boardRepository.findOneBy({ id });
 
     if (!found) throw new NotFoundException(`Can't find board with id [${id}]`);
     return found;
   }
 
-  deleteById(id: string) {
-    const found = this.getBoardById(id);
-    this.boardList = this.boardList.filter((b) => b.id !== found.id);
+  async deleteById(id: number) {
+    const found = await this.getBoardById(id);
+
+    found && (await this.boardRepository.delete({ id }));
   }
 
-  updateBoardStatus(id: string, boardStatus: BoardStatus) {
-    const board = this.getBoardById(id);
+  async updateBoardStatus(id: number, boardStatus: BoardStatus) {
+    const board = await this.getBoardById(id);
     board.status = boardStatus;
-
-    const prev = this.boardList.find((b) => b.id === id);
-    this.boardList.splice(Number(id), 1, { ...prev, status: boardStatus });
+    await this.boardRepository.save(board);
+    // const prev = this.boardList.find((b) => b.id === id);
+    // this.boardList.splice(Number(id), 1, { ...prev, status: boardStatus });
   }
 }
